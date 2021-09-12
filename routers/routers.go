@@ -2,6 +2,7 @@ package routers
 
 import (
 	"rarity-backend/app/controllers"
+	raritymarket "rarity-backend/app/controllers/rarity-market"
 	"rarity-backend/utils/e"
 	"time"
 
@@ -27,10 +28,8 @@ func Init() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	// api := r.Group("/api")
-
-	//公告
-	// api.GET("/demo", wrapper(demo))
+	api := r.Group("/api")
+	api.GET("/summoners", wrapper(raritymarket.GetAllSummoners))
 
 	return r
 }
