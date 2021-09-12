@@ -28,7 +28,7 @@ func Init() *gin.Engine {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	api := r.Group("/api")
+	api := r.Group("/backend")
 	api.GET("/summoners", wrapper(raritymarket.GetAllSummoners))
 
 	return r
