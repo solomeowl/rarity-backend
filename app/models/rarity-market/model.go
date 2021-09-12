@@ -12,7 +12,7 @@ type RarityMarketContract struct {
 }
 
 type RarityMarket struct {
-	ListId  *big.Int       `json:"listId"`
+	ListId  string         `json:"listId"`
 	TokenID *big.Int       `json:"tokenID"`
 	Owner   common.Address `json:"owner"`
 	Buyer   common.Address `json:"buyer"`

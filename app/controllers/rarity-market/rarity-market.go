@@ -50,7 +50,7 @@ func GetAllSummoners(c *gin.Context) (int, int, interface{}) {
 			Status  uint8          `json:"status"`
 		})
 		tmpRarity := raritymarket.RarityMarket{
-			ListId:  tmp.ListId,
+			ListId:  tmp.ListId.String(),
 			TokenID: tmp.TokenID,
 			Owner:   tmp.Owner,
 			Buyer:   tmp.Buyer,
