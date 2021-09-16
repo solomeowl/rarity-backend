@@ -2,6 +2,7 @@ package routers
 
 import (
 	"rarity-backend/app/controllers"
+	raritycraftingone "rarity-backend/app/controllers/rarity-crafting-one"
 	raritymarket "rarity-backend/app/controllers/rarity-market"
 	"rarity-backend/utils/e"
 	"time"
@@ -30,6 +31,6 @@ func Init() *gin.Engine {
 	}))
 	api := r.Group("/backend")
 	api.GET("/summoners", wrapper(raritymarket.GetAllSummoners))
-
+	api.GET("/crafting_one", wrapper(raritycraftingone.GetCraftingByOwner))
 	return r
 }
