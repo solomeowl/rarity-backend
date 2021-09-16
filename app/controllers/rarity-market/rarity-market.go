@@ -3,7 +3,6 @@ package raritymarket
 import (
 	"bytes"
 	"io/ioutil"
-	"log"
 	"math/big"
 	"net/http"
 	"rarity-backend/app/models"
@@ -23,15 +22,18 @@ func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 	pageQ := c.Query("page")
 	sizeQ := c.Query("size")
 	status := -1
-
+	var page, size int
 	if statusQ != "" {
 		status, _ = strconv.Atoi(c.Query("status"))
 	}
 	if pageQ == "" || sizeQ == "" {
-		return http.StatusOK, e.PARAMETER_ERROR, 0, nil
+		page = -1
+		size = -1
+	} else {
+		page, _ = strconv.Atoi(c.Query("page"))
+		size, _ = strconv.Atoi(c.Query("size"))
 	}
-	page, _ := strconv.Atoi(c.Query("page"))
-	size, _ := strconv.Atoi(c.Query("size"))
+
 	client := ethereum.GetClient()
 	abiJson, err := ioutil.ReadFile("./contract/rarity-market/abi.json")
 	if err != nil {
@@ -81,11 +83,17 @@ func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 			list = append(list, tmpRarity)
 		}
 	}
-	min := page * size
-	max := size * (page + 1)
-	if max >= len(list) {
-		return http.StatusOK, e.PARAMETER_ERROR, 0, "out of range"
+	total := len(list)
+	var min, max int
+	if page == -1 || size == -1 {
+		min = 0
+		max = total
+	} else {
+		min = page * size
+		max = size * (page + 1)
+		if max >= total {
+			return http.StatusOK, e.PARAMETER_ERROR, 0, "out of range"
+		}
 	}
-	log.Println(min, max)
-	return http.StatusOK, e.SUCCESS, len(list), list[min:max]
+	return http.StatusOK, e.SUCCESS, total, list[min:max]
 }
