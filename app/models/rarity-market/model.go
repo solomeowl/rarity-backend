@@ -20,3 +20,8 @@ type RarityMarket struct {
 	Payout  *big.Int       `json:"payout"`
 	Status  uint8          `json:"status"`
 }
+
+type RarityMarketResp struct {
+	List  []RarityMarket `json:"list"`
+	Total int            `json:"total"`
+}

@@ -10,12 +10,12 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-type HandlerFunc func(c *gin.Context) (int, int, interface{})
+type HandlerFunc func(c *gin.Context) (int, int, int, interface{})
 
 func wrapper(handler HandlerFunc) func(c *gin.Context) {
 	return func(c *gin.Context) {
-		httpCode, msgCode, data := handler(c)
-		controllers.Response(c, httpCode, msgCode, e.GetMsg(msgCode), data)
+		httpCode, msgCode, total, data := handler(c)
+		controllers.Response(c, httpCode, msgCode, total, e.GetMsg(msgCode), data)
 
 	}
 }

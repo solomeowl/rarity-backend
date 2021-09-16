@@ -3,6 +3,7 @@ package raritymarket
 import (
 	"bytes"
 	"io/ioutil"
+	"log"
 	"math/big"
 	"net/http"
 	"rarity-backend/app/models"
@@ -17,28 +18,36 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func GetAllSummoners(c *gin.Context) (int, int, interface{}) {
+func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 	statusQ := c.Query("status")
+	pageQ := c.Query("page")
+	sizeQ := c.Query("size")
 	status := -1
+
 	if statusQ != "" {
 		status, _ = strconv.Atoi(c.Query("status"))
 	}
+	if pageQ == "" || sizeQ == "" {
+		return http.StatusOK, e.PARAMETER_ERROR, 0, nil
+	}
+	page, _ := strconv.Atoi(c.Query("page"))
+	size, _ := strconv.Atoi(c.Query("size"))
 	client := ethereum.GetClient()
 	abiJson, err := ioutil.ReadFile("./contract/rarity-market/abi.json")
 	if err != nil {
-		return http.StatusOK, e.SERVER_ERROR, err.Error()
+		return http.StatusOK, e.SERVER_ERROR, 0, err.Error()
 	}
 	contractAbi, err := abi.JSON(bytes.NewReader(abiJson))
 	if err != nil {
-		return http.StatusOK, e.SERVER_ERROR, err.Error()
+		return http.StatusOK, e.SERVER_ERROR, 0, err.Error()
 	}
 	contract := raritymarket.BoundContract(common.HexToAddress(models.RARITY_MARKET_ADDR), contractAbi, client)
 	contractResp, err := contract.GetAllSummoners()
 	if err != nil {
-		return http.StatusOK, e.SERVER_ERROR, err.Error()
+		return http.StatusOK, e.SERVER_ERROR, 0, err.Error()
 	}
 	value := reflect.ValueOf(contractResp[0])
-	var resp []raritymarket.RarityMarket
+	var list []raritymarket.RarityMarket
 	for i := 0; i < value.Len(); i++ {
 		tmp := value.Index(i).Interface().(struct {
 			ListId  *big.Int       `json:"listId"`
@@ -60,17 +69,23 @@ func GetAllSummoners(c *gin.Context) (int, int, interface{}) {
 		}
 		if status != -1 {
 			if status == 0 && tmp.Status == 0 {
-				resp = append(resp, tmpRarity)
+				list = append(list, tmpRarity)
 			}
 			if status == 1 && tmp.Status == 1 {
-				resp = append(resp, tmpRarity)
+				list = append(list, tmpRarity)
 			}
 			if status == 2 && tmp.Status == 2 {
-				resp = append(resp, tmpRarity)
+				list = append(list, tmpRarity)
 			}
 		} else {
-			resp = append(resp, tmpRarity)
+			list = append(list, tmpRarity)
 		}
 	}
-	return http.StatusOK, e.SUCCESS, resp
+	min := page * size
+	max := size * (page + 1)
+	if max >= len(list) {
+		return http.StatusOK, e.PARAMETER_ERROR, 0, "out of range"
+	}
+	log.Println(min, max)
+	return http.StatusOK, e.SUCCESS, len(list), list[min:max]
 }
