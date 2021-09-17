@@ -21,6 +21,7 @@ func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 	statusQ := c.Query("status")
 	pageQ := c.Query("page")
 	sizeQ := c.Query("size")
+	addr := c.Query("address")
 	status := -1
 	var page, size int
 	if statusQ != "" {
@@ -49,7 +50,7 @@ func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 		return http.StatusOK, e.SERVER_ERROR, 0, err.Error()
 	}
 	value := reflect.ValueOf(contractResp[0])
-	var list []raritymarket.RarityMarket
+	var tmpList, list []raritymarket.RarityMarket
 	for i := 0; i < value.Len(); i++ {
 		tmp := value.Index(i).Interface().(struct {
 			ListId  *big.Int       `json:"listId"`
@@ -71,18 +72,29 @@ func GetAllSummoners(c *gin.Context) (int, int, int, interface{}) {
 		}
 		if status != -1 {
 			if status == 0 && tmp.Status == 0 {
-				list = append(list, tmpRarity)
+				tmpList = append(tmpList, tmpRarity)
 			}
 			if status == 1 && tmp.Status == 1 {
-				list = append(list, tmpRarity)
+				tmpList = append(tmpList, tmpRarity)
 			}
 			if status == 2 && tmp.Status == 2 {
-				list = append(list, tmpRarity)
+				tmpList = append(tmpList, tmpRarity)
 			}
 		} else {
-			list = append(list, tmpRarity)
+			tmpList = append(tmpList, tmpRarity)
 		}
 	}
+
+	if addr != "" {
+		for _, data := range tmpList {
+			if common.HexToAddress(addr) == data.Owner {
+				list = append(list, data)
+			}
+		}
+	} else {
+		list = tmpList
+	}
+
 	total := len(list)
 	var min, max int
 	if page == -1 || size == -1 {
